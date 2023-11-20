@@ -30,6 +30,7 @@ const studentValidationSchema = z.object({
     id: z.string().min(1).refine((value) => !/\s/.test(value), {
         message: "ID must not contain whitespace",
     }),
+    password: z.string().max(20),
     name: userNameSchema,
     gender: z.enum(["male", "female", "other"]),
     dateOfBirth: z.string().min(1),
@@ -43,6 +44,7 @@ const studentValidationSchema = z.object({
     localGuardian: localGuardianSchema,
     profileImg: z.string().min(1),
     isActive: z.enum(["active", "blocked"]).default("active"),
+    isDeleted: z.boolean().default(false)
 });
 
 export default studentValidationSchema
