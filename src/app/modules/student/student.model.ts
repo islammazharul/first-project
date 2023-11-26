@@ -7,9 +7,7 @@ import {
   // StudentMethods,
   StudentModel,
   TUserName as TUserName,
-} from './student/student.interface';
-import bcrypt from 'bcrypt'
-import config from '../config';
+} from './student.interface';
 // import { number } from 'joi';
 
 const userNameSchema = new Schema<TUserName>({
@@ -60,7 +58,12 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
 
 const studentSchema = new Schema<TStudent, StudentModel>({
   id: { type: String, unique: true, required: [true, 'id must be required'] },
-  password: { type: String, maxlength: [20, 'Password length can not more than 20 character'], required: [true, 'password must be required'] },
+  createUser: {
+    type: Schema.Types.ObjectId,
+    required: [true, 'User id must be required'],
+    unique: true,
+    ref: 'User'
+  },
   name: {
     type: userNameSchema,
     required: [true, 'Name must be required']
@@ -99,11 +102,7 @@ const studentSchema = new Schema<TStudent, StudentModel>({
     required: true
   },
   profileImg: { type: String, required: [true, 'profile Image must be required'] },
-  isActive: {
-    type: String,
-    enum: ['active', 'blocked'],
-    default: 'active'
-  },
+
   isDeleted: {
     type: Boolean,
     default: false
@@ -120,24 +119,7 @@ studentSchema.virtual("fullName").get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`
 })
 
-// pre save middleware/hook
 
-studentSchema.pre("save", async function (next) {
-  // console.log(this, 'pre hook: we will save data');
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this /* doc */
-  // hashing password and save into DB
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_round))
-  next()
-})
-
-// post save middleware/hook
-studentSchema.post("save", function (doc, next) {
-  doc.password = '';
-  next()
-})
 
 // Query middleware
 studentSchema.pre("find", function (next) {
