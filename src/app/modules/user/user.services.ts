@@ -1,12 +1,14 @@
 
 import config from "../../config";
+import { AcademicSemester } from "../academicSemester/academicSemester.model";
 import { TStudent } from "../student/student.interface";
 import { Student } from "../student/student.model";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
+import { generateStudentId } from "./user.utils";
 
 
-const createStudentIntoDb = async (password: string, studentData: TStudent) => {
+const createStudentIntoDb = async (password: string, payload: TStudent) => {
 
     // create a user object
     const userData: Partial<TUser> = {}
@@ -15,17 +17,18 @@ const createStudentIntoDb = async (password: string, studentData: TStudent) => {
     userData.password = password || (config.default_password as string)
 
 
-    // if (!password) {
-    //     password = config.default_password as string
-    // }else{
-    //     user.password = password
-    // }
-
     // set student role
     userData.role = 'student'
 
-    // set manually generated id
-    userData.id = '20301022'
+
+    const admissionSemester = await AcademicSemester.findById(payload.admissionSemester)
+
+    if (!admissionSemester) {
+        throw new Error("Admission semester not found")
+    }
+
+    // set auto generated id
+    userData.id = await generateStudentId(admissionSemester)
 
     // create a user
     const createUser = await User.create(userData); /* built in static method */
@@ -33,11 +36,11 @@ const createStudentIntoDb = async (password: string, studentData: TStudent) => {
     /* object ke array banate hole Object.keys(obj) dite hobe */
     if (Object.keys(createUser).length) {
         // set id, _id as user
-        studentData.id = createUser.id  /* embedding */
-        studentData.createUser = createUser._id /* reference to the user */
+        payload.id = createUser.id  /* embedding */
+        payload.createUser = createUser._id /* reference to the user */
 
         // create a student
-        const newStudent = await Student.create(studentData)
+        const newStudent = await Student.create(payload)
         return newStudent
     }
 };

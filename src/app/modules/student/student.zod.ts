@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const userNameSchema = z.object({
+const userNameValidationSchema = z.object({
   firstName: z
     .string()
     .min(1)
@@ -14,7 +14,7 @@ const userNameSchema = z.object({
   }),
 });
 
-const guardianSchema = z.object({
+const guardianValidationSchema = z.object({
   fatherName: z.string().min(1),
   fatherOccupation: z.string().min(1),
   fatherContactNo: z.string().min(1),
@@ -23,7 +23,7 @@ const guardianSchema = z.object({
   motherContactNo: z.string().min(1),
 });
 
-const localGuardianSchema = z.object({
+const localGuardianValidationSchema = z.object({
   name: z.string().min(1),
   occupation: z.string().min(1),
   contactNo: z.string().min(1),
@@ -31,29 +31,28 @@ const localGuardianSchema = z.object({
 });
 
 const studentValidationSchema = z.object({
-  id: z
-    .string()
-    .min(1)
-    .refine((value) => !/\s/.test(value), {
-      message: 'ID must not contain whitespace',
-    }),
-  password: z.string().max(20),
-  name: userNameSchema,
-  gender: z.enum(['male', 'female', 'other']),
-  dateOfBirth: z.string().min(1),
-  email: z.string().email(),
-  contactNo: z.string().min(1),
-  emergencyContactNo: z.string().min(1),
-  bloodGroup: z
-    .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
-    .optional(),
-  presentAddress: z.string().min(1),
-  permanentAddress: z.string().min(1),
-  guardian: guardianSchema,
-  localGuardian: localGuardianSchema,
-  profileImg: z.string().min(1),
-  isActive: z.enum(['active', 'blocked']).default('active'),
-  isDeleted: z.boolean().default(false),
+  body: z.object({
+    password: z.string().max(20),
+    student: z.object({
+      name: userNameValidationSchema,
+      gender: z.enum(['male', 'female', 'other']),
+      dateOfBirth: z.string().optional(),
+      email: z.string().email(),
+      contactNo: z.string().min(1),
+      emergencyContactNo: z.string().min(1),
+      bloodGroup: z
+        .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+        .optional(),
+      presentAddress: z.string().min(1),
+      permanentAddress: z.string().min(1),
+      guardian: guardianValidationSchema,
+      localGuardian: localGuardianValidationSchema,
+      profileImg: z.string().min(1),
+    })
+
+  })
 });
 
-export default studentValidationSchema;
+export const studentValidations = {
+  studentValidationSchema
+};
