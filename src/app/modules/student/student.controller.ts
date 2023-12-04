@@ -3,6 +3,7 @@ import { studentServices } from './student.services';
 import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
+import { RequestHandler } from 'express';
 // import studentValidationSchema from './student.zod';
 // import studentValidationSchema from './student.joi';
 
@@ -44,8 +45,8 @@ import catchAsync from '../../utils/catchAsync';
 
 
 
-const getAllStudents = catchAsync(async (req, res) => {
-
+const getAllStudents: RequestHandler = catchAsync(async (req, res) => {
+  // console.log(req.query);
   const result = await studentServices.getAllStudentsFromDb();
   // send response
   sendResponse(res, {
@@ -72,9 +73,8 @@ const getSingleStudent = catchAsync(async (req, res) => {
 const updateStudent = catchAsync(async (req, res) => {
 
   const { studentId } = req.params;
-  const {studentData} = req.body
-  console.log(studentId);
-  const result = await studentServices.updateStudentFromDb(studentId, studentData);
+  const {student} = req.body
+  const result = await studentServices.updateStudentFromDb(studentId, student);
   // send response
   sendResponse(res, {
     statusCode: httpStatus.OK,

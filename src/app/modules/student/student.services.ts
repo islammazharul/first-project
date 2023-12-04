@@ -22,8 +22,38 @@ import { TStudent } from './student.interface';
 //   return result;
 // };
 
-const getAllStudentsFromDb = async () => {
-  const result = await Student.find()
+const getAllStudentsFromDb = async (query: Record<string, unknown>) => {
+  console.log('base query',query);
+  const queryObj = {...query}
+
+  let searchTerm = '';
+
+  // IF searchTerm  IS GIVEN SET IT
+  if(query?.searchTerm){
+    searchTerm = query?.searchTerm as string;
+  }
+
+   // HOW OUR FORMAT SHOULD BE FOR PARTIAL MATCH  : 
+  //  {email: {$regex: query.searchTerm, $options: "i"}}
+  //  {presentAddress: {$regex: query.searchTerm, $options: "i"}}
+  //  {name.firstName: {$regex: query.searchTerm, $options: "i"}}
+
+  // WE ARE DYNAMICALLY DOING IT USING LOOP
+
+  const studentSearchableFields = ['email', 'presentAddress', 'name.firstName']
+
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
+      [field]: {$regex: searchTerm, $options: "i"}
+    }))
+  })
+
+    // FILTERING fUNCTIONALITY:
+
+    const excludeFields = ['searchTerm', 'sort', 'limit'];
+    excludeFields.forEach((el) => delete queryObj[el])
+  // console.log(query, queryObj);
+  const filterQuery = await searchQuery.find(queryObj)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -31,7 +61,22 @@ const getAllStudentsFromDb = async () => {
         path: 'academicFaculty',
       },
     });
-  return result;
+
+     // SORTING FUNCTIONALITY:
+     let sort = '-createdAt'
+     if(query?.sort){
+      sort = query?.sort as string
+     }
+
+     const sortQuery = filterQuery?.sort(sort)
+
+     let limit = 1;
+
+     if(query.limit){
+      limit = (query.limit)
+     }
+     const limitQuery = await sortQuery.limit(limit)
+  return limitQuery;
 };
 
 const getSingleStudentFromDb = async (id: string) => {
@@ -83,7 +128,7 @@ const updateStudentFromDb = async (id: string, payload: Partial<TStudent>) => {
       modifiedUpdatedData[`localGuardian.${key}`] = value;
     }
   }
-  console.log(modifiedUpdatedData);
+  // console.log(modifiedUpdatedData);
   const result = await Student.findOneAndUpdate({ id }, modifiedUpdatedData, {
     new: true,
     runValidators: true,

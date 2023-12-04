@@ -42,13 +42,13 @@ const createStudentValidationSchema = z.object({
       emergencyContactNo: z.string().min(1),
       bloodGroup: z
         .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
-        .optional(),
+        ,
       presentAddress: z.string().min(1),
       permanentAddress: z.string().min(1),
       guardian: createGuardianValidationSchema,
       localGuardian: createLocalGuardianValidationSchema,
       admissionSemester: z.string(),
-      academicSemester: z.string(),
+      academicDepartment: z.string(),
       profileImg: z.string().min(1),
     })
 
@@ -101,7 +101,7 @@ const updateStudentValidationSchema = z.object({
       guardian: updateGuardianValidationSchema.optional(),
       localGuardian: updateLocalGuardianValidationSchema.optional(),
       admissionSemester: z.string().optional(),
-      academicSemester: z.string().optional(),
+      academicDepartment: z.string().optional(),
       profileImg: z.string().min(1).optional(),
     })
 
